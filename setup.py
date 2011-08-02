@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version = "1.0a1"
+version = "1.0a2"
 
 setup(name="corejet.pivotal",
       version=version,
@@ -16,7 +16,7 @@ setup(name="corejet.pivotal",
       keywords="corejet testrunner",
       author="Asko Soukka",
       author_email="asko.soukka@iki.fi",
-      url="",
+      url="https://github.com/datakurre/corejet.pivotal/",
       license="GPL",
       packages=find_packages(exclude=["ez_setup"]),
       namespace_packages=["corejet"],

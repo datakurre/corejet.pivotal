@@ -63,9 +63,13 @@ def pivotalSource(details):
         story = Story(str(pivotal_story.get("id")),
                       pivotal_story.get("name"))
         story.status = pivotal_story.get("current_state")
+        story.points = pivotal_story.get("estimate", None)
+        if story.status in ["accepted", "rejected"]:
+            story.resolution = story.status
         appendScenarios(story, pivotal_story.get("description"))
-        epic = Epic(story.name, story.title)
-        epic.stories.append(story)
-        catalogue.epics.append(epic)
+        if story.scenarios:
+            epic = Epic(story.name, story.title)
+            epic.stories.append(story)
+            catalogue.epics.append(epic)
 
     return catalogue

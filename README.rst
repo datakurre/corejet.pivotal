@@ -16,19 +16,19 @@ using Buildout, you can do this with::
 
 Here is an example command line invocation::
 
-  ./bin/test -s corejet.core --corejet="pivotal,token=1234567890abcdef,project=123456,filter=myepickeyword"
+  ./bin/test -s corejet.core --corejet="pivotal,token=mypivotaltoken,project=123456,filter=myepickeyword"
 
 The ``--corejet`` option must start with ``pivotal,`` followed by a set of
 parameters that indicate how to connect to Pivotal Tracker. The parameters are:
 
 ``token=<token>``
-    `pivotal token`_ to use to authenticate
+    `Pivotal token`_ to use to authenticate
 ``project=<project>``
-    pivotal project id to retrieve stories from
+    Pivotal project id to retrieve stories from
 ``filter=<filter>``
-    `pivotal filter`_ string to retrieve stories for this epic
+    `Pivotal filter`_ string to retrieve stories for this epic
 ``title=<title>``
-    optional title for this epic (XXX: may be removed, once Pivotal gets epics)
+    optional requirements catalog title (defaults to Pivotal project title)
 
 Pivotal stories matching project and filter options may contain scenarios in
 simple Gherkin syntax in their description field, e.g.::
@@ -57,10 +57,11 @@ The parser is relatively forgiving, but note:
 * An "And" clause can come after any "Given", "When" or "Then", but not
   first.
 
-Package ``corejet.core`` includes XSLT to generate test skeletons from corejet.xml, e.g.::
+Package `corejet.core`_ includes XSLT to generate test skeletons in Python from corejet.xml, e.g.::
 
   xsltproc eggs/corejet.core-1.0a4-py2.6.egg/corejet/core/xslt/corejet-to-python.xsl parts/test/corejet/corejet.xml
 
+.. _corejet.core: http://pypi.python.org/pypi/corejet.core
 .. _corejet.testrunner: http://pypi.python.org/pypi/corejet.testrunner
-.. _pivotal token: https://www.pivotaltracker.com/help/api?version=v2#retrieve_token
-.. _pivotal filter: https://www.pivotaltracker.com/help/api?version=v2#get_stories_by_filter
+.. _Pivotal token: https://www.pivotaltracker.com/help/api?version=v2#retrieve_token
+.. _Pivotal filter: https://www.pivotaltracker.com/help/api?version=v2#get_stories_by_filter

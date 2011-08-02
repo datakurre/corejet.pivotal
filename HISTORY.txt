@@ -1,7 +1,14 @@
 Changelog
 =========
 
-1.0a1 (2011-08-01)
+1.0a2 - 2011-08-02
+------------------
+
+- Connected Pivotal estimates to CoreJet points.
+- Added filter for stories with no scenarios.
+
+
+1.0a1 - 2011-08-01
 ------------------
 
 - First release.
