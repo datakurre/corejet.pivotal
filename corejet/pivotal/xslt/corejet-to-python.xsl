@@ -23,10 +23,10 @@ class <xsl:value-of select="translate(translate(@title,' -/&quot;', '_'), &quot;
     def <xsl:value-of select="translate(translate(text(),' -/&quot;', '_'), &quot;'&quot;, '')"/>(self):
         pass
 </xsl:for-each>
-
 <xsl:apply-templates select="scenario"/>
 </xsl:template>
 <xsl:template match="scenario">
+
     @scenario("<xsl:value-of select="@name"/>")
     class <xsl:value-of select="translate(translate(@name,' -/&quot;', '_'), &quot;'&quot;, '')"/>(Scenario):
 <xsl:for-each select="given">
@@ -43,7 +43,6 @@ class <xsl:value-of select="translate(translate(@title,' -/&quot;', '_'), &quot;
         @then("<xsl:value-of select="text()"/>")
         def <xsl:value-of select="translate(translate(text(),' -/&quot;', '_'), &quot;'&quot;, '')"/>(self):
             pass
-
 </xsl:for-each>
 </xsl:template>
 </xsl:stylesheet>
