@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version = "1.0a2"
+version = "1.0a3"
 
 setup(name="corejet.pivotal",
       version=version,
@@ -10,10 +10,9 @@ setup(name="corejet.pivotal",
       # Get more strings from
       # http://pypi.python.org/pypi?%3Aaction=list_classifiers
       classifiers=[
-        "Framework :: Plone",
         "Programming Language :: Python",
         ],
-      keywords="corejet testrunner",
+      keywords="corejet pivotal",
       author="Asko Soukka",
       author_email="asko.soukka@iki.fi",
       url="https://github.com/datakurre/corejet.pivotal/",
