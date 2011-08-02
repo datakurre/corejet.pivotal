@@ -4,7 +4,7 @@ version = "1.0a2"
 
 setup(name="corejet.pivotal",
       version=version,
-      description="Adds 'pivotal' repository source for corejet.testrunner.",
+      description="Pivotal Tracker data source for corejet.testrunner",
       long_description=open("README.rst").read() + "\n" +
                        open("HISTORY.txt").read(),
       # Get more strings from
