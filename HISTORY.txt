@@ -1,6 +1,13 @@
 Changelog
 =========
 
+1.0a4 - 2011-08-26
+------------------
+
+- Fixed to replace '"' with "'" before parsing scenario descriptions. If '"'s
+  were allowed to let through, those should be escaped in test decorators,
+  which would look ugly.
+
 1.0a3 - 2011-08-02
 ------------------
 
