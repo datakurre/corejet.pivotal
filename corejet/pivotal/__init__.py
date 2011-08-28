@@ -66,6 +66,9 @@ def pivotalSource(details):
         story.points = pivotal_story.get("estimate", None)
         if story.status in ["accepted", "rejected"]:
             story.resolution = story.status
+        for task in pivotal_story.get("tasks", ()):
+            appendScenarios(
+                story, task.get("description").replace('"', "'"))
         appendScenarios(
             story, pivotal_story.get("description").replace('"', "'"))
         if story.scenarios:
