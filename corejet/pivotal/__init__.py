@@ -67,10 +67,8 @@ def pivotalSource(details):
         if story.status in ["accepted", "rejected"]:
             story.resolution = story.status
         for task in pivotal_story.get("tasks", ()):
-            appendScenarios(
-                story, task.get("description").replace('"', "'"))
-        appendScenarios(
-            story, pivotal_story.get("description").replace('"', "'"))
+            appendScenarios(story, task.get("description"))
+        appendScenarios(story, pivotal_story.get("description"))
         if story.scenarios:
             epic = Epic(story.name, story.title)
             epic.stories.append(story)
