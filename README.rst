@@ -29,6 +29,8 @@ parameters that indicate how to connect to Pivotal Tracker. The parameters are:
     `Pivotal filter`_ string to retrieve stories for this epic
 ``title=<title>``
     optional requirements catalog title (defaults to Pivotal project title)
+``nocomplete``
+    optionally disable autocompleting tasks containing a passing scenario
 
 Pivotal stories matching project and filter options may contain scenarios in
 simple Gherkin syntax in their description field, e.g.::
