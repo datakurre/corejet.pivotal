@@ -21,7 +21,7 @@
 
 from datetime import datetime
 
-import pivotaltracker
+from pivotal import pivotal
 
 from corejet.core.model import RequirementsCatalogue, Epic, Story
 from corejet.core.parser import setBackground, appendScenarios
@@ -52,24 +52,30 @@ def pivotalSource(details):
     assert options.get("filter", False),\
            u"Pivotal filter string is a mandatory option."
 
-    client = pivotaltracker.Client(options["token"], secure=True)
-    project = client.get_project(options["project"])
-    stories = client.get_stories(options["project"], options["filter"])
-    title = options.get("title", project.get("project").get("name"))
+    try:
+        client = pivotal.Pivotal(options["token"], use_https=True)
+    except TypeError:
+        # Support HTTPS on pivotal_py == 0.1.3
+        pivotal.BASE_URL = "https://www.pivotaltracker.com/services/v3/"
+        client = pivotal.Pivotal(options["token"])
+
+    project = client.projects(options["project"])
+    stories = project.stories(filter=options["filter"])
+    title = options.get("title", project.get_etree().findtext("name"))
     catalogue = RequirementsCatalogue(project=title,
                                       extractTime=datetime.now())
 
-    for pivotal_story in stories.get("stories", ()):
-        story = Story(str(pivotal_story.get("id")),
-                      pivotal_story.get("name"))
-        story.status = pivotal_story.get("current_state")
-        story.points = pivotal_story.get("estimate", None)
+    for pivotal_story in stories.get_etree():
+        story = Story(pivotal_story.findtext("id"),
+                      pivotal_story.findtext("name"))
+        story.status = pivotal_story.findtext("current_state")
+        story.points = pivotal_story.findtext("estimate", None)
         if story.status in ["accepted", "rejected"]:
             story.resolution = story.status
-        setBackground(story, pivotal_story.get("description"))
-        for task in pivotal_story.get("tasks", ()):
-            appendScenarios(story, task.get("description"))
-        appendScenarios(story, pivotal_story.get("description"))
+        setBackground(story, pivotal_story.findtext("description"))
+        for task in pivotal_story.find("tasks"):
+            appendScenarios(story, task.findtext("description"))
+        appendScenarios(story, pivotal_story.findtext("description"))
         if story.scenarios:
             epic = Epic(story.name, story.title)
             epic.stories.append(story)

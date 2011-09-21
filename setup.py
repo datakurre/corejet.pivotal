@@ -25,7 +25,7 @@ setup(name="corejet.pivotal",
           "setuptools",
           # -*- Other dependencies: -*-
           "corejet.core",
-          "pivotaltracker",
+          "pivotal-py",
       ],
       entry_points="""
       # -*- Entry points: -*-
