@@ -82,13 +82,18 @@ def pivotalSource(details):
             task = None
             # A fake story is needed to parse exact scenario names
             tmp = Story("id", "name")
-            incomplete_tasks = "//task[contains(complete/text(), 'false')]"
+            incomplete_tasks = ("story[contains(id/text(), '%s')]/tasks/"
+                                "task[contains(complete/text(), 'false')]") %\
+                                self.story.name
             for node in self.pv_stories_etree.xpath(incomplete_tasks):
                 appendScenarios(tmp, node.findtext("description"))
                 # Expect only one scenario per task
                 if tmp.scenarios and tmp.scenarios[-1].name == self.name:
                     task = node
             if task is not None:
+                print (u"Completed task #%s for "
+                       u"https://www.pivotaltracker.com/story/show/%s") %\
+                    (task.findtext("position"), self.story.name)
                 task.find("complete").text = "true"
                 url = self.pv_project.stories(self.story.name)\
                                      .tasks(task.findtext("id")).url
@@ -100,6 +105,8 @@ def pivotalSource(details):
                     "Content-Type": "application/xml"
                     }
                 h.request(url, "PUT", etree.tostring(task), headers=headers)
+                if not self.pv_stories_etree.xpath(incomplete_tasks):
+                    print u"All tasks completed for #%s" % self.story.name
         self._status = status
 
     def get_status(self):
