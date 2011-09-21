@@ -24,7 +24,7 @@ from datetime import datetime
 import pivotaltracker
 
 from corejet.core.model import RequirementsCatalogue, Epic, Story
-from corejet.core.parser import appendScenarios
+from corejet.core.parser import setBackground, appendScenarios
 
 
 def pivotalSource(details):
@@ -66,6 +66,7 @@ def pivotalSource(details):
         story.points = pivotal_story.get("estimate", None)
         if story.status in ["accepted", "rejected"]:
             story.resolution = story.status
+        setBackground(story, pivotal_story.get("description"))
         for task in pivotal_story.get("tasks", ()):
             appendScenarios(story, task.get("description"))
         appendScenarios(story, pivotal_story.get("description"))
