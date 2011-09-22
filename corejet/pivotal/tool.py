@@ -20,7 +20,6 @@
 # You should have received a copy of the GNU General Public License
 # along with corejet.pivotal.  If not, see <http://www.gnu.org/licenses/>.
 
-import os
 import argparse
 import httplib2
 
@@ -41,25 +40,30 @@ def doPivotal(options, corejet_etree):
         # Support HTTPS on pivotal_py == 0.1.3
         pivotal.BASE_URL = "https://www.pivotaltracker.com/services/v3/"
         pv = pivotal.Pivotal(options["token"])
-    project = pv.projects(options["project"])
+    pivotal_project = pv.projects(options["project"])
 
-    incomplete_tasks = "tasks/task[contains(complete/text(), 'false')]"
+    pivotal_story_etrees = {}
 
-    stories = {}
-    for scenario in corejet_etree.xpath("//scenario[@testStatus='pass']"):
+    def get_pivotal_story_etree(story_id):
+        if story_id in pivotal_story_etrees:
+            story_etree = pivotal_story_etrees[story_id]
+        else:
+            story_etree = pivotal_project.stories(story_id).get_etree()
+            pivotal_story_etrees[story_id] = story_etree
+        return pivotal_story_etrees[story_id]
+
+    incomplete_tasks_xpath = "tasks/task[contains(complete/text(), 'false')]"
+
+    for scenario in corejet_etree.findall(
+            "epic/story/scenario[@testStatus='pass']"):
 
         story_id = scenario.getparent().get("id")
-        if story_id in stories:
-            story_etree = stories[story_id]
-        else:
-            story_etree = project.stories(story_id).get_etree()
-            stories[story_id] = story_etree
 
         task = None
         # A fake story is needed to parse exact scenario names
         tmp = Story("id", "name")
-
-        for node in story_etree.xpath(incomplete_tasks):
+        story_etree = get_pivotal_story_etree(story_id)
+        for node in story_etree.xpath(incomplete_tasks_xpath):
             appendScenarios(tmp, node.findtext("description"))
             # Expect only one scenario per task
             if tmp.scenarios\
@@ -71,8 +75,8 @@ def doPivotal(options, corejet_etree):
                    u"https://www.pivotaltracker.com/story/show/%s") %\
                 (task.findtext("position"), story_id)
             task.find("complete").text = "true"
-            url = project.stories(story_id)\
-                         .tasks(task.findtext("id")).url
+            url = pivotal_project.stories(story_id)\
+                                 .tasks(task.findtext("id")).url
 
             h = httplib2.Http(timeout=15)
             h.force_exception_to_status_code = True
@@ -81,8 +85,47 @@ def doPivotal(options, corejet_etree):
                 "Content-Type": "application/xml"
                 }
             h.request(url, "PUT", etree.tostring(task), headers=headers)
-            if not story_etree.xpath(incomplete_tasks):
+            if not story_etree.xpath(incomplete_tasks_xpath):
                 print u"All tasks completed for #%s" % story_id
+
+    for story in corejet_etree.findall("epic/story"):
+        # total_scenarios = len(story.findall("scenario"))
+        passing_scenarios = story.findall("scenario[@testStatus='pass']")
+        failing_scenarios = story.findall("scenario[@testStatus='fail']")
+        pending_scenarios = story.findall("scenario[@testStatus='pending']")
+        mismatch_scenarios = story.findall("scenario[@testStatus='mismatch']")
+
+        if passing_scenarios and not (failing_scenarios or pending_scenarios
+            or mismatch_scenarios):
+            if story.get("requirementStatus") not in ["finished", "accepted",
+                "rejected", "delivered"]:
+                status = u"COMMIT"
+            else:
+                status = u"DONE"
+        elif mismatch_scenarios or pending_scenarios:
+            status = "SYNC"
+        else:
+            status = "FAIL"
+
+        print ((u"#%s: passing %02d failing %02d outdated %02d "
+                u"missing %02d status %s") %\
+                (story.get("id"), len(passing_scenarios),
+                 len(failing_scenarios), len(mismatch_scenarios),
+                 len(pending_scenarios), status)
+               ).replace("00", "--")
+
+        for scenario in pending_scenarios:
+            print u"#%s: MISSING: Scenario: %s" %\
+                (story.get("id"), scenario.get("name"))
+
+        for scenario in mismatch_scenarios:
+            story = scenario.getparent()
+            print u"#%s: OUTDATED: \"Scenario: %s\"" %\
+                (story.get("id"), scenario.get("name"))
+
+        if mismatch_scenarios or pending_scenarios:
+            print u"#%s: URI: https://www.pivotaltracker.com/story/show/%s" %\
+                (story.get("id"), story.get("id"))
 
 
 def __main__():

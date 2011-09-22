@@ -92,7 +92,7 @@ def pivotalSource(details):
 
         setBackground(story, node.findtext("description"))
 
-        for task in node.xpath("tasks/task"):
+        for task in node.findall("tasks/task"):
             appendScenarios(story, task.findtext("description"))
 
         appendScenarios(story, node.findtext("description"))
