@@ -101,9 +101,14 @@ def doPivotal(options, corejet_etree):
                 "rejected", "delivered"]:
                 status = u"COMMIT"
             else:
-                status = u"DONE"
+                status = u"OK"
+
+        elif mismatch_scenarios or pending_scenarios and story.get(
+                "requirementStatus") in\
+                ["finished", "accepted", "rejected", "delivered"]:
+            status = "REGRESSION"
         elif mismatch_scenarios or pending_scenarios:
-            status = "SYNC"
+            status = "UNSYNC"
         else:
             status = "FAIL"
 
