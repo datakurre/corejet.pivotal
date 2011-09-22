@@ -19,15 +19,14 @@
 # You should have received a copy of the GNU General Public License
 # along with corejet.pivotal.  If not, see <http://www.gnu.org/licenses/>.
 
-import httplib2
-
 from datetime import datetime
 
 from pivotal import pivotal
-from pivotal.anyetree import etree
 
-from corejet.core.model import RequirementsCatalogue, Epic, Story, Scenario
+from corejet.core.model import RequirementsCatalogue, Epic, Story
 from corejet.core.parser import setBackground, appendScenarios
+
+from corejet.pivotal import config
 
 
 def pivotalSource(details):
@@ -36,22 +35,25 @@ def pivotalSource(details):
     The parameter should be a comma-separated string with the following
     parameters:
 
+    <section> - pivotal.cfg section name to retrieve missing arguments from
     token=<token> - pivotal token to use to authenticate
     project=<project> - pivotal project id to retrieve stories from
     filter=<filter> - pivotal filter string to retrieve stories for this epic
-    title=<title> - optional title for this epic
+    title=<title> - optional title for this epic (defaults to project name)
     """
 
-    options = {
-        "complete": True
-        }
+    options = {}
 
     for option in details.split(","):
-        if option == "nocomplete":
-            options["complete"] = False
-            continue
-        key, value = option.split("=", 1)
+        try:
+            key, value = option.split("=", 1)
+        except ValueError:
+            # only value without key is allowed and that's "section"
+            key = "section"
+            value = option
         options[key.strip().lower()] = value.strip()
+
+    options = config.read(options.get("section", None), options)
 
     assert options.get("token", False),\
            u"Pivotal token is a mandatory option."
@@ -59,6 +61,10 @@ def pivotalSource(details):
            u"Pivotal project id is a mandatory option."
     assert options.get("filter", False),\
            u"Pivotal filter string is a mandatory option."
+
+    # set includedone:true if it's not explicitly set otherwise
+    if not "includedone:" in options["filter"]:
+        options["filter"] += " includedone:true"
 
     try:
         pv = pivotal.Pivotal(options["token"], use_https=True)
@@ -77,47 +83,6 @@ def pivotalSource(details):
     catalogue = RequirementsCatalogue(project=title,
                                       extractTime=datetime.now())
 
-    def set_status(self, status):
-        if status == "pass" and self.pv_options["complete"]:
-            task = None
-            # A fake story is needed to parse exact scenario names
-            tmp = Story("id", "name")
-            incomplete_tasks = ("story[contains(id/text(), '%s')]/tasks/"
-                                "task[contains(complete/text(), 'false')]") %\
-                                self.story.name
-            for node in self.pv_stories_etree.xpath(incomplete_tasks):
-                appendScenarios(tmp, node.findtext("description"))
-                # Expect only one scenario per task
-                if tmp.scenarios and tmp.scenarios[-1].name == self.name:
-                    task = node
-            if task is not None:
-                print (u"Completed task #%s for "
-                       u"https://www.pivotaltracker.com/story/show/%s") %\
-                    (task.findtext("position"), self.story.name)
-                task.find("complete").text = "true"
-                url = self.pv_project.stories(self.story.name)\
-                                     .tasks(task.findtext("id")).url
-
-                h = httplib2.Http(timeout=15)
-                h.force_exception_to_status_code = True
-                headers = {
-                    "X-TrackerToken": self.pv_project.token,
-                    "Content-Type": "application/xml"
-                    }
-                h.request(url, "PUT", etree.tostring(task), headers=headers)
-                if not self.pv_stories_etree.xpath(incomplete_tasks):
-                    print u"All tasks completed for #%s" % self.story.name
-        self._status = status
-
-    def get_status(self):
-        return getattr(self, "_status", None)
-
-    # Monkeypatch Scenario to enable us reporting completed tasks
-    Scenario.pv_options = options
-    Scenario.pv_project = project
-    Scenario.pv_stories_etree = stories_etree
-    Scenario.status = property(get_status, set_status)
-
     for node in stories_etree:
         story = Story(node.findtext("id"), node.findtext("name"))
         story.status = node.findtext("current_state")
@@ -127,7 +92,7 @@ def pivotalSource(details):
 
         setBackground(story, node.findtext("description"))
 
-        for task in node.find("tasks"):
+        for task in node.xpath("tasks/task"):
             appendScenarios(story, task.findtext("description"))
 
         appendScenarios(story, node.findtext("description"))

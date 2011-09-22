@@ -21,6 +21,8 @@ Here is an example command line invocation::
 The ``--corejet`` option must start with ``pivotal,`` followed by a set of
 parameters that indicate how to connect to Pivotal Tracker. The parameters are:
 
+``<section>``
+    optional pivotal.cfg section name to retrieve missing arguments from
 ``token=<token>``
     `Pivotal token`_ to use to authenticate
 ``project=<project>``
@@ -28,9 +30,7 @@ parameters that indicate how to connect to Pivotal Tracker. The parameters are:
 ``filter=<filter>``
     `Pivotal filter`_ string to retrieve stories for this epic
 ``title=<title>``
-    optional requirements catalog title (defaults to Pivotal project title)
-``nocomplete``
-    optionally disable autocompleting tasks containing a passing scenario
+    optional requirements catalog title (defaults to Pivotal project's title)
 
 Pivotal stories matching project and filter options may contain scenarios in
 simple Gherkin syntax in their description field, e.g.::
@@ -59,9 +59,33 @@ The parser is relatively forgiving, but note:
 * An "And" clause can come after any "Given", "When" or "Then", but not
   first.
 
-Package `corejet.core`_ includes XSLT to generate test skeletons in Python from corejet.xml, e.g.::
+Optional ``pivotal.cfg`` looked from the current working directory (or
+``~/.pivotalrc``) may be a INI-style config file describing key value pairs
+within sections (there's no special "global"-section). If there's a config file
+with only one section, it will be read implicitly when no `section`` is given::
+
+  [myproject]
+  token = ...
+  project = 12345
+
+  [otherproject]
+  token = ...
+  project = 12345
+
+Package `corejet.core`_ includes XSLT to generate test skeletons in Python from
+corejet.xml, e.g.::
 
   xsltproc eggs/corejet.core-1.0a4-py2.6.egg/corejet/core/xslt/corejet-to-python.xsl parts/test/corejet/corejet.xml
+
+Install experimental ``bin/pivotal`` tool by adding the following part into
+your ``buildout.cfg``::
+
+  [buildout]
+  parts += scripts
+
+  [scripts]
+  recipe = zc.recipe.egg
+  eggs = corejet.pivotal
 
 .. _corejet.core: http://pypi.python.org/pypi/corejet.core
 .. _corejet.testrunner: http://pypi.python.org/pypi/corejet.testrunner

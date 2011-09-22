@@ -25,11 +25,14 @@ setup(name="corejet.pivotal",
           "setuptools",
           # -*- Other dependencies: -*-
           "corejet.core",
+          "argparse",
           "pivotal-py",
       ],
       entry_points="""
       # -*- Entry points: -*-
       [corejet.repositorysource]
       pivotal = corejet.pivotal:pivotalSource
+      [console_scripts]
+      pivotal = corejet.pivotal.tool:__main__
       """,
       )
