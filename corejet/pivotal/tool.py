@@ -20,6 +20,7 @@
 # You should have received a copy of the GNU General Public License
 # along with corejet.pivotal.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
 import argparse
 import httplib2
 
@@ -97,8 +98,10 @@ def __main__():
         "--project",
         help=u"pivotal.cfg section name to retrieve arguments from")
     parser.add_argument(
-        metavar="corejet.xml", dest="filename",
-        help=u"path to CoreJet test report")
+        metavar="corejet.xml", dest="filename", nargs="?",
+        default="parts/test/corejet/corejet.xml",
+        help=(u"path to CoreJet test report "
+              u"(defaults to parts/test/corejet/corejet.xml)"))
 
     args = parser.parse_args()
 

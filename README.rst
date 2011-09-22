@@ -59,6 +59,9 @@ The parser is relatively forgiving, but note:
 * An "And" clause can come after any "Given", "When" or "Then", but not
   first.
 
+Please, note that ``filter`` will include ``includedone:true`` implicitly when
+it's not explicitly set to *false*.
+
 Optional ``pivotal.cfg`` looked from the current working directory (or
 ``~/.pivotalrc``) may be a INI-style config file describing key value pairs
 within sections (there's no special "global"-section). If there's a config file
