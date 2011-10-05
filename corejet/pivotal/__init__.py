@@ -122,10 +122,12 @@ def pivotalSource(details):
                 story.resolution = story.status
             story.points = node.findtext("estimate", None)
 
-            appendScenarios(story, node.findtext("description"))
+            appendScenarios(story, node.findtext("description"),
+                            default_language=options.get("language", "en"))
 
             for task in node.findall("tasks/task"):
-                appendScenarios(story, task.findtext("description"))
+                appendScenarios(story, task.findtext("description"),
+                                default_language=options.get("language", "en"))
 
             if story.scenarios:
                 epic.stories.append(story)
