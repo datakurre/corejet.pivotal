@@ -21,16 +21,17 @@ Here is an example command line invocation::
 The ``--corejet`` option must start with ``pivotal,`` followed by a set of
 parameters that indicate how to connect to Pivotal Tracker. The parameters are:
 
-``<section>``
-    optional pivotal.cfg section name to retrieve missing arguments from
+``<epic>,<epic>,...``
+    optional pivotal.cfg section names to retrieve options per epic
 ``token=<token>``
-    `Pivotal token`_ to use to authenticate
+    default `Pivotal token`_ to use in authentication
 ``project=<project>``
-    Pivotal project id to retrieve stories from
+    default Pivotal project id to retrieve stories from
 ``filter=<filter>``
-    `Pivotal filter`_ string to retrieve stories for this epic
+    default `Pivotal filter`_ string to retrieve stories for this epic
 ``title=<title>``
-    optional requirements catalog title (defaults to Pivotal project's title)
+    optional requirements catalog title (defaults to the first found Pivotal
+    project title)
 
 Pivotal stories matching project and filter options may contain scenarios in
 simple Gherkin syntax in their description field, e.g.::
@@ -62,18 +63,40 @@ The parser is relatively forgiving, but note:
 Please, note that ``filter`` will include ``includedone:true`` implicitly when
 it's not explicitly set to *false*.
 
-Optional ``pivotal.cfg`` looked from the current working directory (or
-``~/.pivotalrc``) may be a INI-style config file describing key value pairs
-within sections (there's no special "global"-section). If there's a config file
-with only one section, it will be read implicitly when no `section`` is given::
+Optional ``pivotal.cfg`` that is looked at first from the current working
+directory (or as ``~/.pivotalrc``) may be a INI-style config file describing
+key value pairs within sections (special ``defaults``-section is supported for
+defining defaults).
 
-  [myproject]
-  token = ...
-  project = 12345
+You may define several epics, for example, with the following setup:
 
-  [otherproject]
-  token = ...
-  project = 12345
+1) ``~/.pivotalrc``::
+
+     [defaults]
+     token = mysecretpivotaltrackertoken
+
+2) ``./pivotal.cfg``::
+
+     [defaults]
+     title = My project
+     project = 123456
+
+     [first-epic]
+     title = A component for my project
+     filter = label:firstlabel
+
+     [another-epic]
+     title = An another component for my project
+     filter = label:anotherlabel
+
+3) Execute CoreJet with::
+
+     ./bin/test  --corejet="pivotal,first-epic,another-epic"
+
+It's also possible to define list of epic-sections in ``[defaults]`` with
+``epics = first-epic,another-epic``, but be aware that CoreJet expects to find
+a comma after requirements catalog plugin name (so that minimal command line
+options for CoreJet with pivotal catalog would be ``--corejet="pivotal,"``).
 
 Package `corejet.core`_ includes XSLT to generate test skeletons in Python from
 corejet.xml, e.g.::

@@ -24,12 +24,22 @@ import os
 import ConfigParser
 
 
-def read(section=None, options={}):
+def read(section=None, defaults={}, filename=None):
+    sep = os.path.sep
     parts = os.getcwd().split("/")
-    paths = ["/".join(parts) + "/pivotal.cfg"] +\
-            ["/".join(parts[:-i]) + "/pivotal.cfg"
-             for i in range(1, len(parts))] +\
-            [os.path.expanduser("~/.pivotalrc")]
+
+    if filename:
+        basename = os.path.basename(filename)
+        paths = [sep.join(parts) + sep + basename] +\
+                [sep.join(parts[:-i]) + sep + basename
+                 for i in range(1, len(parts))]
+    else:
+        paths = [sep.join(parts) + sep + "pivotal.cfg"] +\
+                [sep.join(parts[:-i]) + sep + "pivotal.cfg"
+                 for i in range(1, len(parts))] +\
+                [os.path.expanduser("~" + sep + ".pivotalrc")]
+
+    options = defaults.copy()
 
     for path in paths:
 
@@ -43,11 +53,17 @@ def read(section=None, options={}):
             if section and not config.has_section(section):
                 continue
 
-            section = section or config.sections()[0]
+            if not config.has_section("defaults"):
+                continue
+
+            section = section or "defaults"
             for key in config.options(section):
-                # don't override already set options
-                if not key in options or options[key] is None:
+                # options in "defaults" section must not override existing
+                if section != "defaults" or key not in options:
                     options[key] = config.get(section, key)
-            return options
+
+            # "defaults"-sections are read from any cfg-file found
+            if section != "defaults":
+                return options
 
     return options

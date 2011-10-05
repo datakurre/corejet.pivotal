@@ -19,87 +19,121 @@
 # You should have received a copy of the GNU General Public License
 # along with corejet.pivotal.  If not, see <http://www.gnu.org/licenses/>.
 
+try:
+    # Enable httplib2 to fetch urls under when under GAE SDK buildout
+    from google.appengine.api import apiproxy_stub_map
+    from google.appengine.api import urlfetch_stub
+    # Create a stub map so we can build App Engine mock stubs.
+    apiproxy_stub_map.apiproxy = apiproxy_stub_map.APIProxyStubMap()
+    # Register App Engine mock stubs.
+    apiproxy_stub_map.apiproxy.RegisterStub(
+        "urlfetch", urlfetch_stub.URLFetchServiceStub())
+except ImportError:
+    pass
+
 from datetime import datetime
 
 from pivotal import pivotal
 
 from corejet.core.model import RequirementsCatalogue, Epic, Story
-from corejet.core.parser import setBackground, appendScenarios
+from corejet.core.parser import appendScenarios
 
 from corejet.pivotal import config
 
 
 def pivotalSource(details):
-    """Produce a CoreJet XML file with stories for a single epic from Pivotal.
+    """Produce a CoreJet XML file with stories for epics from Pivotal.
 
     The parameter should be a comma-separated string with the following
     parameters:
 
-    <section> - pivotal.cfg section name to retrieve missing arguments from
-    token=<token> - pivotal token to use to authenticate
-    project=<project> - pivotal project id to retrieve stories from
-    filter=<filter> - pivotal filter string to retrieve stories for this epic
-    title=<title> - optional title for this epic (defaults to project name)
+    <epic>,<epic>,... - optional cfg section names to retrieve options per epic
+    token=<token> - default pivotal token to use in authentication
+    project=<project> - default pivotal project id to retrieve stories from
+    filter=<filter> - default pivotal filter string to retrieve stories
+    title=<title> - optional title for the requirements catalog
+                    (defaults to the first found pivotal project title)
     """
 
-    options = {}
+    sections = []
+    defaults = {}
 
     for option in details.split(","):
         try:
             key, value = option.split("=", 1)
         except ValueError:
-            # only value without key is allowed and that's "section"
-            key = "section"
-            value = option
-        options[key.strip().lower()] = value.strip()
+            # values without keys are interpreted as cfg-sections
+            value = option.strip()
+            if value:
+                sections.append(value)
+            continue
+        defaults[key.strip().lower()] = value.strip()
 
-    options = config.read(options.get("section", None), options)
+    defaults = config.read("defaults", defaults)
 
-    assert options.get("token", False),\
-           u"Pivotal token is a mandatory option."
-    assert options.get("project", False),\
-           u"Pivotal project id is a mandatory option."
-    assert options.get("filter", False),\
-           u"Pivotal filter string is a mandatory option."
+    if not sections and "epics" in defaults:
+        sections = [name.strip() for name in defaults["epics"].split(",")]
 
-    # set includedone:true if it's not explicitly set otherwise
-    if not "includedone:" in options["filter"]:
-        options["filter"] += " includedone:true"
+    if not sections:
+        sections = ["defaults"]
 
-    try:
-        pv = pivotal.Pivotal(options["token"], use_https=True)
-    except TypeError:
-        # Support HTTPS on pivotal_py == 0.1.3
-        pivotal.BASE_URL = "https://www.pivotaltracker.com/services/v3/"
-        pv = pivotal.Pivotal(options["token"])
+    epics = []
 
-    project = pv.projects(options["project"])
-    project_etree = project.get_etree()
+    for section in sections:
+        options = config.read(section, defaults)
 
-    stories = project.stories(filter=options["filter"])
-    stories_etree = stories.get_etree()
+        assert options.get("token", False),\
+               u"Pivotal token is a mandatory option."
+        assert options.get("project", False),\
+               u"Pivotal project id is a mandatory option."
+        assert options.get("filter", False),\
+               u"Pivotal filter string is a mandatory option."
 
-    title = options.get("title", project_etree.findtext("name"))
-    catalogue = RequirementsCatalogue(project=title,
+        # set includedone:true if it's not explicitly set otherwise
+        if not "includedone:" in options["filter"]:
+            options["filter"] += " includedone:true"
+
+        try:
+            pv = pivotal.Pivotal(options["token"], use_https=True)
+        except TypeError:
+            # Support HTTPS on pivotal_py == 0.1.3
+            pivotal.BASE_URL = "https://www.pivotaltracker.com/services/v3/"
+            pv = pivotal.Pivotal(options["token"])
+
+        project = pv.projects(options["project"])
+        project_etree = project.get_etree()
+        project_title =\
+            options.get("title", project_etree.findtext("name"))
+
+        if not "title" in defaults:
+            defaults["title"] = project_title
+
+        epic = Epic(name=section != "defaults" and section\
+                     or str(sections.index(section) + 1),
+                    title=options.get("title", project_title))
+
+        stories = project.stories(filter=options["filter"])
+        stories_etree = stories.get_etree()
+
+        for node in stories_etree:
+            story = Story(node.findtext("id"), node.findtext("name"))
+            story.status = node.findtext("current_state")
+            if story.status in ["accepted", "rejected"]:
+                story.resolution = story.status
+            story.points = node.findtext("estimate", None)
+
+            appendScenarios(story, node.findtext("description"))
+
+            for task in node.findall("tasks/task"):
+                appendScenarios(story, task.findtext("description"))
+
+            if story.scenarios:
+                epic.stories.append(story)
+        epics.append(epic)
+
+    catalogue = RequirementsCatalogue(project=defaults["title"],
                                       extractTime=datetime.now())
-
-    for node in stories_etree:
-        story = Story(node.findtext("id"), node.findtext("name"))
-        story.status = node.findtext("current_state")
-        if story.status in ["accepted", "rejected"]:
-            story.resolution = story.status
-        story.points = node.findtext("estimate", None)
-
-        setBackground(story, node.findtext("description"))
-
-        for task in node.findall("tasks/task"):
-            appendScenarios(story, task.findtext("description"))
-
-        appendScenarios(story, node.findtext("description"))
-
-        if story.scenarios:
-            epic = Epic(story.name, story.title)
-            epic.stories.append(story)
-            catalogue.epics.append(epic)
+    for epic in epics:
+        catalogue.epics.append(epic)
 
     return catalogue
