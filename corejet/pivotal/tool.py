@@ -55,7 +55,7 @@ def doPivotal(options, corejet_etree):
     incomplete_tasks_xpath = "tasks/task[contains(complete/text(), 'false')]"
 
     for scenario in corejet_etree.findall(
-            "epic/story/scenario[@testStatus='pass']"):
+        "story/scenario[@testStatus='pass']"):
 
         story_id = scenario.getparent().get("id")
 
@@ -88,7 +88,7 @@ def doPivotal(options, corejet_etree):
             if not story_etree.xpath(incomplete_tasks_xpath):
                 print u"All tasks completed for #%s" % story_id
 
-    for story in corejet_etree.findall("epic/story"):
+    for story in corejet_etree.findall("story"):
         # total_scenarios = len(story.findall("scenario"))
         passing_scenarios = story.findall("scenario[@testStatus='pass']")
         failing_scenarios = story.findall("scenario[@testStatus='fail']")
@@ -137,14 +137,15 @@ def __main__():
     parser = argparse.ArgumentParser(
         description=u"Check CoreJet report against PivotalTracker")
     parser.add_argument(
-        "section", nargs="?",
-        help=u"pivotal.cfg section name to retrieve arguments from")
+        "sections", nargs="?",
+        help=(u"comma separated list of pivotal.cfg section names to "
+              u"retrieve epics from"))
     parser.add_argument(
         "--token",
-        help=u"pivotal token to use to authenticate")
+        help=u"default pivotal token to use to authenticate")
     parser.add_argument(
         "--project",
-        help=u"pivotal.cfg section name to retrieve arguments from")
+        help=u"default pivotal project id to retrieve stories from")
     parser.add_argument(
         metavar="corejet.xml", dest="filename", nargs="?",
         default="parts/test/corejet/corejet.xml",
@@ -153,14 +154,24 @@ def __main__():
 
     args = parser.parse_args()
 
-    options = {
+    defaults = {
         "project": args.project,
         "token": args.token
         }
+    defaults = config.read("defaults", defaults)
 
-    options = config.read(args.section, options)
+    sections = None
+    if args.sections:
+        sections = [name.strip() for name in args.sections.split(",")]
+    if not sections and "epics" in defaults:
+        sections = [name.strip() for name in defaults["epics"].split(",")]
 
-    if None in options.values():
+    epics = {}
+    if sections:
+        for section in sections:
+            epics[section] = config.read(section, defaults)
+
+    if None in defaults.values():
         parser = argparse.ArgumentParser(
             description=u"Check CoreJet report against PivotalTracker")
         parser.add_argument(
@@ -168,11 +179,15 @@ def __main__():
             help=u"pivotal token to use to authenticate")
         parser.add_argument(
             "--project", required=True,
-            help=u"pivotal.cfg section name to retrieve arguments from")
+            help=u"pivotal project id to retrieve stories from")
         parser.add_argument(
             metavar="parts/test/corejet/corejet.xml", dest="filename",
             help=u"path to CoreJet test report")
         args = parser.parse_args()
 
     corejet_etree = etree.fromstring(open(args.filename).read())
-    return doPivotal(options, corejet_etree)
+    if not sections:
+        for epic in corejet_etree.findall("epic"):
+            doPivotal(defaults, epic)
+    for epic in epics:
+        doPivotal(epics[epic], corejet_etree.find("epic[@id='%s']" % epic))
