@@ -94,9 +94,7 @@ You may define several epics, for example, with the following setup:
      ./bin/test  --corejet="pivotal,first-epic,another-epic"
 
 It's also possible to define list of epic-sections in ``[defaults]`` with
-``epics = first-epic,another-epic``, but be aware that CoreJet expects to find
-a comma after requirements catalog plugin name (so that minimal command line
-options for CoreJet with pivotal catalog would be ``--corejet="pivotal,"``).
+``epics = first-epic,another-epic`` and run tests with ``--corejet=pivotal``.
 
 Package `corejet.core`_ includes XSLT to generate test skeletons in Python from
 corejet.xml, e.g.::
