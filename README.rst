@@ -8,7 +8,7 @@ To use it, make sure it is installed in the working set of the testrunner. If
 using Buildout, you can do this with::
 
     [test]
-    recipe = corejet.testrunner
+    recipe = corejet.recipe.testrunner
     eggs =
         corejet.pivotal
         <other packages>
@@ -57,14 +57,14 @@ The parser is relatively forgiving, but note:
 * The "Given" clause is optional, but must come first in a scenario
 * The "When" clause is required, and must come before the "Then" clause
 * The "Then"" clause is also required
-* An "And" clause can come after any "Given", "When" or "Then", but not
-  first.
+* An "And" or "But" clause can come after any "Given", "When" or "Then", but
+  not first.
 
 Please, note that ``filter`` will include ``includedone:true`` implicitly when
 it's not explicitly set to *false*.
 
-Optional ``pivotal.cfg`` that is looked at first from the current working
-directory (or as ``~/.pivotalrc``) may be a INI-style config file describing
+Optional ``pivotal.cfg`` which is looked at first the current working directory
+upwards (or from ``~/.pivotalrc``) may be an INI-style config file describing
 key value pairs within sections (special ``defaults``-section is supported for
 defining defaults).
 

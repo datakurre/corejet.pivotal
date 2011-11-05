@@ -1,6 +1,10 @@
 Changelog
 =========
 
+- Added support for config files and possibility to define epics using them.
+- Changed scenarios parsed from tasks to be parsed only after parsing
+  description (to allow definition of story-level steps in description).
+
 1.0a5 – 2011-08-28
 ------------------
 
