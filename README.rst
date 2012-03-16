@@ -113,5 +113,5 @@ your ``buildout.cfg``::
 
 .. _corejet.core: http://pypi.python.org/pypi/corejet.core
 .. _corejet.testrunner: http://pypi.python.org/pypi/corejet.testrunner
-.. _Pivotal token: https://www.pivotaltracker.com/help/api?version=v2#retrieve_token
-.. _Pivotal filter: https://www.pivotaltracker.com/help/api?version=v2#get_stories_by_filter
+.. _Pivotal token: https://www.pivotaltracker.com/help/api?version=v3#retrieve_token
+.. _Pivotal filter: https://www.pivotaltracker.com/help#howcanasearchberefined
