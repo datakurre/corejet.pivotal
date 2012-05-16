@@ -89,6 +89,10 @@ def pivotalSource(details):
         assert options.get("filter", False),\
                u"Pivotal filter string is a mandatory option."
 
+        # append filter from command line (when found)
+        if defaults.get("filter", "") not in options["filter"]:
+            options["filter"] += " %s" % defaults["filter"]
+
         # set includedone:true if it's not explicitly set otherwise
         if not "includedone:" in options["filter"]:
             options["filter"] += " includedone:true"
