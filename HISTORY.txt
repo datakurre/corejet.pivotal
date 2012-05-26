@@ -1,37 +1,45 @@
 Changelog
 =========
 
+
+1.0.0 (2012-05-26)
+------------------
+
 - Added support for config files and possibility to define epics using them.
 - Changed scenarios parsed from tasks to be parsed only after parsing
   description (to allow definition of story-level steps in description).
 
-1.0a5 – 2011-08-28
+
+1.0a5 (2011-08-28)
 ------------------
 
 - Added support for tasks: If a story has tasks, their descriptions will be
   parsed for scenarios (and those will be appended) before parsing story's main
   description.
 
-1.0a4 – 2011-08-26
+
+1.0a4 (2011-08-26)
 ------------------
 
 - Fixed to replace every " with ' before parsing scenario descriptions. If "s
   were allowed to let through, those should be escaped in test decorators,
   which would look ugly.
 
-1.0a3 – 2011-08-02
+
+1.0a3 (2011-08-02)
 ------------------
 
 - Fixed package info to match with other corejet packages.
 
-1.0a2 – 2011-08-02
+
+1.0a2 (2011-08-02)
 ------------------
 
 - Connected Pivotal estimates to CoreJet points.
 - Added filter for stories with no scenarios.
 
 
-1.0a1 – 2011-08-01
+1.0a1 (2011-08-01)
 ------------------
 
 - First release.

@@ -99,7 +99,7 @@ It's also possible to define list of epic-sections in ``[defaults]`` with
 Package `corejet.core`_ includes XSLT to generate test skeletons in Python from
 corejet.xml, e.g.::
 
-  xsltproc eggs/corejet.core-1.0a4-py2.6.egg/corejet/core/xslt/corejet-to-python.xsl parts/test/corejet/corejet.xml
+  xsltproc eggs/corejet.core-1.0.0-py2.6.egg/corejet/core/xslt/corejet-to-python.xsl parts/test/corejet/corejet.xml
 
 Install experimental ``bin/pivotal`` tool by adding the following part into
 your ``buildout.cfg``::
