@@ -60,7 +60,7 @@ def read(section=None, defaults={}, filename=None):
             for key in config.options(section):
                 # options in "defaults" section must not override existing
                 if section != "defaults"\
-                    or (key not in options or not options[key]):
+                        or (key not in options or not options[key]):
                     options[key] = config.get(section, key)
 
             # "defaults"-sections are read from any cfg-file found

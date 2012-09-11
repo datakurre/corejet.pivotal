@@ -55,7 +55,7 @@ def doPivotal(options, corejet_etree):
     incomplete_tasks_xpath = "tasks/task[contains(complete/text(), 'false')]"
 
     for scenario in corejet_etree.findall(
-        "story/scenario[@testStatus='pass']"):
+            "story/scenario[@testStatus='pass']"):
 
         story_id = scenario.getparent().get("id")
 
@@ -67,7 +67,7 @@ def doPivotal(options, corejet_etree):
             appendScenarios(tmp, node.findtext("description"))
             # Expect only one scenario per task
             if tmp.scenarios\
-                and tmp.scenarios[-1].name == scenario.get("name"):
+                    and tmp.scenarios[-1].name == scenario.get("name"):
                 task = node
 
         if task is not None:
@@ -83,7 +83,7 @@ def doPivotal(options, corejet_etree):
             headers = {
                 "X-TrackerToken": options["token"],
                 "Content-Type": "application/xml"
-                }
+            }
             h.request(url, "PUT", etree.tostring(task), headers=headers)
             if not story_etree.xpath(incomplete_tasks_xpath):
                 print u"All tasks completed for #%s" % story_id
@@ -96,9 +96,9 @@ def doPivotal(options, corejet_etree):
         mismatch_scenarios = story.findall("scenario[@testStatus='mismatch']")
 
         if passing_scenarios and not (failing_scenarios or pending_scenarios
-            or mismatch_scenarios):
+                                      or mismatch_scenarios):
             if story.get("requirementStatus") not in ["finished", "accepted",
-                "rejected", "delivered"]:
+                                                      "rejected", "delivered"]:
                 status = u"COMMIT"
             else:
                 status = u"OK"
@@ -113,10 +113,10 @@ def doPivotal(options, corejet_etree):
             status = "FAIL"
 
         print ((u"#%s: passing %02d failing %02d outdated %02d "
-                u"missing %02d status %s") %\
-                (story.get("id"), len(passing_scenarios),
-                 len(failing_scenarios), len(mismatch_scenarios),
-                 len(pending_scenarios), status)
+                u"missing %02d status %s") %
+               (story.get("id"), len(passing_scenarios),
+                len(failing_scenarios), len(mismatch_scenarios),
+                len(pending_scenarios), status)
                ).replace("00", "--")
 
         for scenario in pending_scenarios:
@@ -157,7 +157,7 @@ def __main__():
     defaults = {
         "project": args.project,
         "token": args.token
-        }
+    }
     defaults = config.read("defaults", defaults)
 
     sections = None
