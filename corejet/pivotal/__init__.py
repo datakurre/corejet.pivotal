@@ -83,11 +83,11 @@ def pivotalSource(details):
         options = config.read(section, defaults)
 
         assert options.get("token", False),\
-               u"Pivotal token is a mandatory option."
+            u"Pivotal token is a mandatory option."
         assert options.get("project", False),\
-               u"Pivotal project id is a mandatory option."
+            u"Pivotal project id is a mandatory option."
         assert options.get("filter", False),\
-               u"Pivotal filter string is a mandatory option."
+            u"Pivotal filter string is a mandatory option."
 
         # append filter from command line (when found)
         if defaults.get("filter", "") not in options["filter"]:
@@ -108,13 +108,19 @@ def pivotalSource(details):
         project_etree = project.get_etree()
         project_title =\
             options.get("title", project_etree.findtext("name"))
+        if not type(project_title) == unicode:  # ensure unicode
+            project_title = unicode(project_title, "utf-8", "ignore")
 
         if not "title" in defaults:
             defaults["title"] = project_title
 
-        epic = Epic(name=section != "defaults" and section\
-                     or str(sections.index(section) + 1),
-                    title=options.get("title", project_title))
+        epic_title = options.get("title", project_title)
+        if not type(epic_title) == unicode:  # ensure unicode
+            epic_title = unicode(epic_title, "utf-8", "ignore")
+
+        epic = Epic(name=section != "defaults" and section
+                    or str(sections.index(section) + 1),
+                    title=epic_title)
 
         stories = project.stories(filter=options["filter"])
         stories_etree = stories.get_etree()
