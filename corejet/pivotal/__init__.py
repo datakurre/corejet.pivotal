@@ -41,6 +41,19 @@ from corejet.core.parser import appendScenarios
 from corejet.pivotal import config
 
 
+def appendScenariosFromPivotalStory(story, node, options):
+    """Appends scenarios from Pivotal node or prints error"""
+    try:
+        appendScenarios(story, node.findtext("description") or u"",
+                        default_language=options.get("language", "en"))
+
+        for task in node.findall("tasks/task"):
+            appendScenarios(story, task.findtext("description") or u"",
+                            default_language=options.get("language", "en"))
+    except ValueError, e:
+        print("Could not parse story %s\n%s" % (node.findtext("url"), str(e)))
+
+
 def pivotalSource(details):
     """Produce a CoreJet XML file with stories for epics from Pivotal.
 
@@ -132,12 +145,7 @@ def pivotalSource(details):
                 story.resolution = story.status
             story.points = node.findtext("estimate", None)
 
-            appendScenarios(story, node.findtext("description") or u"",
-                            default_language=options.get("language", "en"))
-
-            for task in node.findall("tasks/task"):
-                appendScenarios(story, task.findtext("description") or u"",
-                                default_language=options.get("language", "en"))
+            appendScenariosFromPivotalStory(story, node, options)
 
             if story.scenarios:
                 epic.stories.append(story)
