@@ -143,7 +143,7 @@ def pivotalSource(details):
             story.status = node.findtext("current_state")
             if story.status in ["accepted", "rejected"]:
                 story.resolution = story.status
-            story.points = node.findtext("estimate", None)
+            story.points = max(1, int(node.findtext("estimate", 0) or 0))
 
             appendScenariosFromPivotalStory(story, node, options)
 
