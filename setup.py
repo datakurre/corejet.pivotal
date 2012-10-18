@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="corejet.pivotal",
-    version="1.1.0",
+    version="1.2.0",
     description="Pivotal Tracker data source for corejet.testrunner",
     long_description=(open("README.rst").read() + "\n" +
                       open("CHANGES.txt").read()),
